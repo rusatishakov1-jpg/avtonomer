@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Генератор автомобильных номеров</title>
+<style>
+:root{color-scheme:dark;--bg:#101827;--panel:#1b293b;--muted:#a9b8ca;--accent:#69d6b2;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101827,#182b40);color:#f4f7fb;font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+main{max-width:560px;margin:auto;padding:22px 16px 40px}.top{text-align:center;margin:8px 0 22px}.top .emoji{font-size:42px}.top h1{font-size:25px;margin:5px 0}.top p{color:var(--muted);margin:0}
+.panel{background:var(--panel);border:1px solid #34465b;border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #0002}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tabs button,.action,.small{border:0;border-radius:13px;padding:13px;font-weight:700;font-size:15px;cursor:pointer}
+.tabs button{background:#293b50;color:#dce7f3}.tabs button.active{background:var(--accent);color:#10231f}
+.plate{background:#f7f8f5;color:#111;border:4px solid #d7dce0;border-radius:12px;min-height:100px;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;margin:16px 0 10px;box-shadow:0 4px 0 #9da7ad}
+.plate .mainnum{font-weight:850;font-size:clamp(27px,8vw,39px);letter-spacing:1px;white-space:nowrap}.plate .country{border-left:2px solid #aab2b7;padding-left:9px;font-size:12px;font-weight:800;align-self:stretch;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.plate .flag{font-size:19px}.rarity{text-align:center;font-weight:800;letter-spacing:1px;min-height:24px}
+.action{width:100%;background:var(--accent);color:#10231f;margin-top:10px}.action:active,.small:active{transform:scale(.98)}.action:disabled,.small:disabled{opacity:.45;cursor:not-allowed}.plate.spinning{animation:slotPulse .12s infinite alternate}@keyframes slotPulse{from{transform:translateY(-2px);filter:brightness(1.05)}to{transform:translateY(2px);filter:brightness(.92)}}
+.secondary{background:#34465b;color:#fff}.stats{display:flex;justify-content:space-between;gap:10px;color:var(--muted);margin-top:16px}.stats b{color:#fff}
+h2{font-size:18px;margin:0 0 12px}.muted{color:var(--muted);font-size:13px;line-height:1.45}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #34465b}.row:last-child{border:0}.row strong{font-size:15px}.tag{font-size:11px;font-weight:800;color:#14201e;background:var(--gold);padding:5px 8px;border-radius:20px}
+.actions{display:flex;gap:8px}.small{background:#34465b;color:#fff;padding:9px 12px;font-size:13px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:10px}
+</style>
+</head>
+<body>
+<main>
+ <header class="top"><div class="emoji">🚘</div><h1>Генератор номеров</h1><p>Собирай красивые автомобильные комбинации</p></header>
+ <section class="panel">
+  <div class="tabs">
+   <button id="ru" class="active" type="button">🇷🇺 Россия</button>
+   <button id="kz" type="button">🇰🇿 Казахстан</button>
+  </div>
+  <div class="plate" aria-live="polite">
+   <div class="mainnum" id="number">А 777 АА</div>
+   <div class="country"><span class="flag" id="flag">🇷🇺</span><span id="countryCode">RUS</span></div>
+  </div>
+  <div class="rarity" id="rarity">✨ ЛЕГЕНДАРНЫЙ</div>
+  <button class="action" id="generate" type="button">🎰 Сгенерировать номер</button>
+  <div class="stats"><span>Рубли: <b id="coins">0</b> ₽</span><span>Всего создано: <b id="total">0</b></span></div>
+  <p class="muted">Каждая генерация бесплатная. Редкость определяется игровой комбинацией.</p>
+ </section>
+ <section class="panel">
+  <h2>🏆 Коллекция</h2>
+  <p class="muted" id="capacityText">Мест в коллекции: 0 / 10</p>
+  <div id="collection"><p class="muted">Пока пусто. Сгенерируй первый номер!</p></div>
+  <div class="actions"><button class="small" id="clear" type="button">Очистить коллекцию</button></div>
+ </section>
+ <section class="panel">
+  <h2>🛠️ Улучшения</h2>
+  <div class="row">
+   <div><strong>📦 Вместимость коллекции</strong><div class="muted" id="capacityLevel">Уровень 0 · 10 мест</div><div class="muted" id="capacityCost">Цена: 100 000 ₽</div></div>
+   <button class="small" id="upgradeCapacity" type="button">Улучшить</button>
+  </div>
+  <div class="row">
+   <div><strong>🍀 Удача прокрутки</strong><div class="muted" id="luckLevel">Уровень 0 · обычные шансы</div><div class="muted" id="luckCost">Цена: 250 000 ₽</div></div>
+   <button class="small" id="upgradeLuck" type="button">Улучшить</button>
+  </div>
+  <p class="muted">Улучшение вместимости добавляет 5 мест. Удача повышает вероятность редких, эпических и легендарных номеров. Максимальный уровень каждого улучшения — 10.</p>
+ </section>
+ <section class="panel">
+  <h2>💎 Редкость номеров</h2>
+  <div class="row"><strong>Обычный</strong><span class="muted">Стандартная комбинация</span></div>
+  <div class="row"><strong>Редкий</strong><span class="muted">Повторяющиеся цифры или буквы</span></div>
+  <div class="row"><strong>Эпический</strong><span class="muted">Три одинаковые цифры или буквы</span></div>
+  <div class="row"><strong>Легендарный</strong><span class="muted">777, 888, 999 или 000</span></div>
+ </section>
+ <footer>Игровой генератор. Комбинации случайные и не подтверждают регистрацию автомобиля.</footer>
+</main>
+<script>
+(()=>{
+ const letters='АВЕКМНОРСТУХ';
+ const regionsRU=['77','97','99','177','197','199','777','23','50','90','150','190','750'];
+ const regionsKZ=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'];
+ let country='ru';
+ let data={coins:0,total:0,collection:[],capacityLevel:0,luckLevel:0};
+ try{data={...data,...JSON.parse(localStorage.getItem('plateGameSave')||'{}')};}catch(e){}
+ data.capacityLevel=Math.max(0,Math.min(10,Number(data.capacityLevel)||0));
+ data.luckLevel=Math.max(0,Math.min(10,Number(data.luckLevel)||0));
+ data.collection=Array.isArray(data.collection)?data.collection:[];
+ const capacity=()=>10+data.capacityLevel*5;
+ const capacityPrice=()=>100000*(data.capacityLevel+1);
+ const luckPrice=()=>250000*(data.luckLevel+1);
+ const money=n=>Number(n).toLocaleString('ru-RU');
+ const $=id=>document.getElementById(id);
+ const save=()=>{try{localStorage.setItem('plateGameSave',JSON.stringify(data));}catch(e){}};
+ const pick=s=>s[Math.floor(Math.random()*s.length)];
+ const digits=()=>String(Math.floor(Math.random()*10));
+ function create(){
+  let nums=digits()+digits()+digits();
+  let lets=country==='ru'?pick(letters)+pick(letters):pick(letters)+pick(letters)+pick(letters);
+  const luck=data.luckLevel;
+  const roll=Math.random();
+  const legendaryChance=0.005+luck*0.009;
+  const epicChance=0.025+luck*0.012;
+  if(roll<legendaryChance){
+   nums=pick(['777','888','999','000']);
+  }else if(roll<legendaryChance+epicChance){
+   if(Math.random()<0.5) nums=pick(['111','222','333','444','555','666']);
+   else lets=country==='ru'?pick(letters).repeat(2):pick(letters).repeat(3);
+  }
+  let number,region;
+  if(country==='ru'){
+   region=pick(regionsRU);
+   number=pick(letters)+' '+nums+' '+lets+' '+region;
+  }else{
+   region=pick(regionsKZ);
+   number=nums+' '+lets+' '+region;
+  }
+  let rarity='ОБЫЧНЫЙ';
+  if(['777','888','999','000'].includes(nums)) rarity='ЛЕГЕНДАРНЫЙ';
+  else if(new Set(nums).size===1||new Set(lets).size===1) rarity='ЭПИЧЕСКИЙ';
+  else if(new Set(nums).size<3||new Set(lets).size<3) rarity='РЕДКИЙ';
+  return {number,rarity,country,id:Date.now()+Math.random()};
+ }
+ function render(){
+  $('coins').textContent=data.coins;
+  $('total').textContent=data.total;
+  $('capacityText').textContent=`Мест в коллекции: ${data.collection.length} / ${capacity()}`;
+  $('capacityLevel').textContent=`Уровень ${data.capacityLevel} · ${capacity()} мест`;
+  $('capacityCost').textContent=data.capacityLevel>=10?'Максимальный уровень':'Цена: '+money(capacityPrice())+' ₽';
+  $('luckLevel').textContent=`Уровень ${data.luckLevel} · шанс редких номеров выше`;
+  $('luckCost').textContent=data.luckLevel>=10?'Максимальный уровень':'Цена: '+money(luckPrice())+' ₽';
+  $('upgradeCapacity').disabled=data.capacityLevel>=10||data.coins<capacityPrice();
+  $('upgradeLuck').disabled=data.luckLevel>=10||data.coins<luckPrice();
+  $('collection').innerHTML='';
+  if(!data.collection.length){$('collection').innerHTML='<p class="muted">Пока пусто. Сгенерируй первый номер!</p>';return;}
+  data.collection.slice(0,20).forEach(item=>{
+   const row=document.createElement('div');row.className='row';
+   const name=document.createElement('strong');name.textContent=(item.country==='ru'?'🇷🇺 ':'🇰🇿 ')+item.number;
+   const tag=document.createElement('span');tag.className='tag';tag.textContent=item.rarity;
+   row.append(name,tag);$('collection').append(row);
+  });
+ }
+ let spinning=false;
+ function generate(){
+  if(spinning)return;
+  spinning=true;
+  const button=$('generate');
+  button.disabled=true;
+  button.textContent='🎰 Крутим номер...';
+  $('rarity').textContent='✨ УДАЧИ!';
+  let ticks=0;
+  const spinTimer=setInterval(()=>{
+   const preview=create();
+   $('number').textContent=preview.number;
+   $('number').parentElement.classList.add('spinning');
+   ticks++;
+   if(ticks>=18){
+    clearInterval(spinTimer);
+    const item=create();
+    $('number').textContent=item.number;
+    $('number').parentElement.classList.remove('spinning');
+    $('rarity').textContent=({ОБЫЧНЫЙ:'⚪ ',РЕДКИЙ:'🔹 ',ЭПИЧЕСКИЙ:'🟣 ',ЛЕГЕНДАРНЫЙ:'🌟 '})[item.rarity]+item.rarity;
+    data.total++;data.coins+=item.rarity==='ЛЕГЕНДАРНЫЙ'?1000000:item.rarity==='ЭПИЧЕСКИЙ'?300000:item.rarity==='РЕДКИЙ'?100000:20000;
+    data.collection.unshift(item);data.collection=data.collection.slice(0,capacity());
+    save();render();
+    button.disabled=false;
+    button.textContent='🎰 Сгенерировать номер';
+    spinning=false;
+   }
+  },85);
+ }
+ function setCountry(c){
+  country=c;$('ru').classList.toggle('active',c==='ru');$('kz').classList.toggle('active',c==='kz');
+  $('flag').textContent=c==='ru'?'🇷🇺':'🇰🇿';$('countryCode').textContent=c==='ru'?'RUS':'KZ';
+  $('number').textContent=c==='ru'?'А 777 АА':'777 ААА';$('rarity').textContent='Нажми «Сгенерировать номер»';
+ }
+ $('ru').addEventListener('click',()=>setCountry('ru'));
+ $('kz').addEventListener('click',()=>setCountry('kz'));
+ $('generate').addEventListener('click',generate);
+ $('upgradeCapacity').addEventListener('click',()=>{
+  const price=capacityPrice();
+  if(data.capacityLevel>=10||data.coins<price)return;
+  data.coins-=price;data.capacityLevel++;
+  save();render();
+ });
+ $('upgradeLuck').addEventListener('click',()=>{
+  const price=luckPrice();
+  if(data.luckLevel>=10||data.coins<price)return;
+  data.coins-=price;data.luckLevel++;
+  save();render();
+ });
+ $('clear').addEventListener('click',()=>{if(confirm('Очистить всю коллекцию?')){data.collection=[];save();render();}});
+ render();setCountry('ru');
+})();
+</script>
+</body>
+</html>
